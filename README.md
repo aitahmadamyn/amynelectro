@@ -1,11 +1,26 @@
-<div align="center">
+# SmartNexus-MA
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+Smart Solar Irrigation Prototype - Electronic System Design
 
-  <h1>Built with AI Studio</h2>
+This repository contains the hardware design, software, and documentation for the SmartNexus-MA project.
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+## Directory Structure
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+- `/docs` - System architecture, circuit explanations, and power protection guidelines.
+- `/hardware` - Bill of Materials (BOM) and wiring diagrams.
+- `/software` - ESP32 Arduino source code.
 
-</div>
+## Project Overview
+
+The goal is to control a solar-powered irrigation system with sensors and an ESP32 microcontroller. 
+
+### Control Logic
+- If soil moisture is low AND battery level is sufficient: **Activate the pump**.
+- If battery level is low: **Stop the pump to protect the battery**.
+
+### Data Collected
+- Soil moisture
+- Water flow
+- Battery voltage
+- Pump current
+- Pump status
