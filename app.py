@@ -28,6 +28,15 @@ def get_sensor_data():
 
 data = get_sensor_data()
 
+# --- Indicateur Visuel de la Pompe ---
+st.subheader("État du Système d'Irrigation")
+if data['pump_status'] == "ON":
+    st.success("💧 **La pompe est actuellement ACTIVE.** L'irrigation est en cours.", icon="✅")
+else:
+    st.warning("🛑 **La pompe est actuellement INACTIVE.** Le sol est suffisamment humide ou la batterie est faible.", icon="⏸️")
+
+st.markdown("<br>", unsafe_allow_html=True)
+
 # Affichage des métriques principales sous forme de colonnes
 col1, col2, col3, col4 = st.columns(4)
 
