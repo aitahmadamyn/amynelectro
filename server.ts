@@ -13,10 +13,13 @@ async function startServer() {
     const directories = ['docs', 'hardware', 'software'];
     const files: any[] = [];
 
-    // Add README
-    if (fs.existsSync(path.join(rootDir, 'README.md'))) {
-      files.push({ path: '/README.md', name: 'README.md', type: 'file' });
-    }
+    // Add root files
+    const rootFiles = ['README.md', 'app.py', 'requirements.txt'];
+    rootFiles.forEach(file => {
+      if (fs.existsSync(path.join(rootDir, file))) {
+        files.push({ path: `/${file}`, name: file, type: 'file' });
+      }
+    });
 
     directories.forEach(dir => {
       const dirPath = path.join(rootDir, dir);
