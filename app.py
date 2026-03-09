@@ -1,8 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import time
-import random
+import requests
 from datetime import datetime, timedelta
 
 # Configuration de la page
@@ -15,16 +14,26 @@ st.markdown("Surveillance en temps réel du système d'irrigation solaire intell
 # --- Section : Données en temps réel ---
 st.header("📊 Données en Temps Réel")
 
-# Fonction pour générer des données simulées
-# (À remplacer plus tard par une connexion à Firebase ou MQTT pour lire les vraies données de l'ESP32)
+# URL de votre base de données Firebase (à configurer dans les secrets Streamlit)
+FIREBASE_URL = st.secrets.get("FIREBASE_URL", "")
+
+# Fonction pour récupérer les vraies données depuis Firebase
 def get_sensor_data():
-    return {
-        "battery_v": round(random.uniform(11.8, 12.6), 2),
-        "moisture": random.randint(30, 80),
-        "pump_current": round(random.uniform(0.0, 2.5), 2),
-        "flow_rate": round(random.uniform(0.0, 15.0), 2),
-        "pump_status": random.choice(["ON", "OFF"])
-    }
+    if not FIREBASE_URL:
+        st.error("⚠️ Veuillez configurer FIREBASE_URL dans les secrets Streamlit.")
+        return {"battery_v": 0, "moisture": 0, "pump_current": 0, "flow_rate": 0, "pump_status": "OFF"}
+        
+    try:
+        # Requête GET vers Firebase REST API
+        response = requests.get(f"{FIREBASE_URL}/SmartNexus/Realtime.json")
+        if response.status_code == 200:
+            data = response.json()
+            if data:
+                return data
+    except Exception as e:
+        st.warning(f"Erreur de connexion à Firebase : {e}")
+        
+    return {"battery_v": 0, "moisture": 0, "pump_current": 0, "flow_rate": 0, "pump_status": "OFF"}
 
 data = get_sensor_data()
 
@@ -79,8 +88,5 @@ with col_chart2:
     fig_battery.update_traces(line_color="#10b981") # Vert
     st.plotly_chart(fig_battery, use_container_width=True)
 
-# Note explicative pour le projet
-st.info("""
-💡 **Note pour le prototype :** Actuellement, ce tableau de bord affiche des données simulées pour la démonstration. 
-Pour le connecter à votre ESP32, vous devrez envoyer les données de l'ESP32 vers une base de données (comme Firebase Realtime Database ou un broker MQTT), puis lire ces données ici dans ce script Python.
-""")
+# Rafraîchissement automatique (optionnel)
+st.button("🔄 Rafraîchir les données")

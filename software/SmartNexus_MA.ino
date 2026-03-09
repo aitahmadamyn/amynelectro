@@ -6,6 +6,7 @@
  */
 
 #include <WiFi.h>
+#include <HTTPClient.h>
 
 // --- Pin Definitions ---
 const int MOISTURE_PIN = 34;
@@ -33,9 +34,11 @@ float flowRate = 0.0;
 unsigned long oldTime = 0;
 bool isPumpRunning = false;
 
-// --- WiFi Credentials ---
+// --- WiFi & Firebase Credentials ---
 const char* ssid = "YOUR_WIFI_SSID";
 const char* password = "YOUR_WIFI_PASSWORD";
+// Remplacez par l'URL de votre base de données Firebase (SANS le / à la fin)
+const char* FIREBASE_URL = "https://YOUR_PROJECT_ID.firebaseio.com";
 
 // Interrupt Service Routine for Flow Sensor
 void IRAM_ATTR flowSensorISR() {
@@ -106,7 +109,7 @@ void loop() {
     }
   }
 
-  // 3. Print Telemetry (Replace with HTTP POST/MQTT publish in real app)
+  // 3. Print Telemetry
   Serial.println("----- System Status -----");
   Serial.printf("Battery Voltage: %.2f V\n", batteryVoltage);
   Serial.printf("Soil Moisture (Raw): %d\n", moistureRaw);
@@ -115,5 +118,35 @@ void loop() {
   Serial.printf("Pump Status: %s\n", isPumpRunning ? "ON" : "OFF");
   Serial.println("-------------------------");
 
-  delay(2000); // Wait before next reading
+  // 4. Send Data to Firebase
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    String url = String(FIREBASE_URL) + "/SmartNexus/Realtime.json";
+    http.begin(url);
+    http.addHeader("Content-Type", "application/json");
+
+    // Construction du payload JSON
+    String jsonPayload = "{";
+    jsonPayload += "\"battery_v\":" + String(batteryVoltage) + ",";
+    jsonPayload += "\"moisture\":" + String(moistureRaw) + ",";
+    jsonPayload += "\"pump_current\":" + String(pumpCurrent) + ",";
+    jsonPayload += "\"flow_rate\":" + String(flowRate) + ",";
+    jsonPayload += "\"pump_status\":\"" + String(isPumpRunning ? "ON" : "OFF") + "\"";
+    jsonPayload += "}";
+
+    int httpResponseCode = http.PUT(jsonPayload); // PUT remplace les données existantes
+
+    if (httpResponseCode > 0) {
+      Serial.print("Données envoyées à Firebase. Code HTTP: ");
+      Serial.println(httpResponseCode);
+    } else {
+      Serial.print("Erreur d'envoi Firebase: ");
+      Serial.println(httpResponseCode);
+    }
+    http.end();
+  } else {
+    Serial.println("Erreur: WiFi déconnecté.");
+  }
+
+  delay(5000); // Attendre 5 secondes avant la prochaine lecture
 }
