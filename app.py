@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import requests
+import random
 from datetime import datetime, timedelta
 
 # Configuration de la page
